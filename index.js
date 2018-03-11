@@ -1,6 +1,7 @@
 const express = require('express')
 const cors = require('cors')
 const mysql = require('mysql')
+const axios = require('axios')
 
 const env = process.env.NODE_ENV || 'development';
 const config = require('./config')[env];
@@ -34,6 +35,23 @@ app.get('/movies', (req, res) => {
       })
     }
   })
+})
+
+app.get('/weather', (req, res) => {
+  const city = '524901'
+  const appid = config.secret && config.secret.WEATHER_API_KEY || ''
+  if (!appid) {
+    return res.status(500).send({ error: 'No weather api key' })
+  }
+  const url = `http://api.openweathermap.org/data/2.5/weather?id=${city}&units=metric&APPID=${appid}`
+
+  axios.get(url)
+    .then(response => {
+      return res.json({
+        temperature: response.data.main.temp
+      })
+    })
+    .catch(error => res.send(error))
 })
 
 app.listen(config.server.port, () => {
