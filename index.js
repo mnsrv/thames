@@ -3,12 +3,14 @@ const cors = require('cors')
 const mysql = require('mysql')
 const axios = require('axios')
 
-const env = process.env.NODE_ENV || 'development';
-const config = require('./config')[env];
+const env = process.env.NODE_ENV || 'development'
+const config = require('./config')[env]
+
+const scrapeLetterboxd = require('./scrape')
 
 const app = express()
 
-const SELECT_ALL_MOVIES_QUERY = 'SELECT * FROM letterboxd_diary'
+const SELECT_ALL_MOVIES_QUERY = `SELECT * FROM ${config.database.table}`
 
 const connection = mysql.createConnection({
   host: config.database.host,
@@ -52,6 +54,18 @@ app.get('/weather', (req, res) => {
       })
     })
     .catch(error => res.send(error))
+})
+
+app.get('/letterboxd', (req, res) => {
+  const appid = config.secret && config.secret.ALFRED_API_SECRET || ''
+  if (!appid) {
+    return res.status(500).send({ error: 'no secret' })
+  }
+  if (req.query.password === config.secret.ALFRED_API_SECRET) {
+    scrapeLetterboxd(res, connection)
+  } else {
+    return res.status(500).send({ error: 'wrong secret' })
+  }
 })
 
 app.listen(config.server.port, () => {
