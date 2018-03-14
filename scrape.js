@@ -16,7 +16,7 @@ const scrapeLetterboxd = (res, connection, page = 1, movies = []) => {
         rating: {
           selector: ".td-rating .rateit-field",
           attr: "value",
-          convert: x => Number(x) / 2
+          convert: x => Number(x)
         },
         watched_date: {
           selector: ".td-day a",
