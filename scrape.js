@@ -40,7 +40,7 @@ const scrapeLetterboxd = (res, connection, page = 1, movies = []) => {
   }).catch(error => res.send(error))
 }
 const insertIntoTable  = (res, connection, data) => {
-  const values = Object.keys(data).map(key => data[key])
+  const values = data.map(item => Object.keys(item).map(key => item[key]))
   connection.query(INSERT_MOVIES_QUERY, [values], (err, results) => {
     if (err) {
       if (err) throw err
