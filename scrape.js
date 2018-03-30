@@ -4,14 +4,14 @@ const env = process.env.NODE_ENV || 'development'
 const config = require('./config')[env]
 
 const TRUNCATE_LETTERBOXD_QUERY = `TRUNCATE TABLE ${config.database.table}`
-const INSERT_MOVIES_QUERY = `INSERT INTO ${config.database.table} (title, year, rating, watched_date) VALUES ?`
+const INSERT_MOVIES_QUERY = `INSERT INTO ${config.database.table} (original_title, year, rating, watched_date) VALUES ?`
 
 const scrapeLetterboxd = (res, connection, page = 1, movies = []) => {
   scrapeIt(`https://letterboxd.com/mansurov/films/diary/page/${page}/`, {
     movies: {
       listItem: ".diary-entry-row",
       data: {
-        title: ".headline-3 a",
+        original_title: ".headline-3 a",
         year: ".td-released span",
         rating: {
           selector: ".td-rating .rateit-field",
