@@ -7,6 +7,7 @@ const env = process.env.NODE_ENV || 'development'
 const config = require('./config')[env]
 
 const scrapeLetterboxd = require('./scrape')
+const scrapeImdbId = require('./scrapeImdbId')
 const tmdb = require('./tmdb')
 
 const app = express()
@@ -64,6 +65,18 @@ app.get('/letterboxd', (req, res) => {
   }
   if (req.query.password === config.secret.ALFRED_API_SECRET) {
     scrapeLetterboxd(res, connection)
+  } else {
+    return res.status(500).send({ error: 'wrong secret' })
+  }
+})
+
+app.get('/imdb_id', (req, res) => {
+  const appid = config.secret && config.secret.ALFRED_API_SECRET || ''
+  if (!appid) {
+    return res.status(500).send({ error: 'no secret' })
+  }
+  if (req.query.password === config.secret.ALFRED_API_SECRET) {
+    scrapeImdbId(res, connection)
   } else {
     return res.status(500).send({ error: 'wrong secret' })
   }
