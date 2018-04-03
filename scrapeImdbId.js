@@ -1,51 +1,42 @@
 const scrapeIt = require("scrape-it")
 
-const env = process.env.NODE_ENV || 'development'
-const config = require('./config')[env]
+const { getMoviesFromDB, updateTableRow } = require('./db')
 
-const SELECT_ALL_MOVIES_QUERY = `SELECT * FROM ${config.database.table}`
-const UPDATE_MOVIE_QUERY = `UPDATE ${config.database.table} SET ? WHERE id = ?`
-
-const updateTableRow = (res, connection, dbId, data, movies, movieIndex) => {
-  const params = {
-    imdb_id: data.imdb_id
-  }
-  connection.query(UPDATE_MOVIE_QUERY, [params, dbId], (err, results) => {
-    if (err) {
-      if (err) throw err
-    } else {
-      if (movieIndex < movies.length - 1) {
-        return scrapeLetterboxdMovie(res, connection, movies, movieIndex + 1)
-      } else {
-        return res.json({
-          success: true,
-          moviesLength: movies.length
-        })
+const scrapeImdbIdFromPage = (letterboxd_url) => {
+  return new Promise((resolve, reject) => {
+    const imdbSelector = {
+      imdb_id: {
+        selector: ".micro-button[data-track-action=IMDb]",
+        attr: "href",
+        convert: url => url.split('/').find(item => /\d/.test(item))
       }
     }
+    scrapeIt(`https://letterboxd.com${letterboxd_url}`, imdbSelector)
+      .then(({ data }) => resolve(data))
+      .catch(error => reject(error))
   })
 }
 
-const scrapeLetterboxdMovie = (res, connection, movies, movieIndex = 0) => {
-  scrapeIt(`https://letterboxd.com${movies[movieIndex].letterboxd_url}`, {
-    imdb_id: {
-      selector: ".micro-button[data-track-action=IMDb]",
-      attr: "href",
-      convert: url => url.split('/').find(item => /\d/.test(item))
+const scrapeImdbId = async () => {
+  let countInserted = 0
+  const movies = await getMoviesFromDB()
+  for (let movie of movies) {
+    if (movie.letterboxd_url && !movie.imdb_id) {
+      const { imdb_id } = await scrapeImdbIdFromPage(movie.letterboxd_url)
+      if (imdb_id) {
+        countInserted++
+        await updateTableRow({ imdb_id }, movie.id)
+      }
     }
-  }).then(({ data }) => {
-    updateTableRow(res, connection, movies[movieIndex].id, data, movies, movieIndex)
-  }).catch(error => res.send(error))
+  }
+  return {
+    success: true,
+    countInserted,
+    moviesLength: movies.length
+  }
 }
 
-const scrapeImdbId = (res, connection) => {
-  connection.query(SELECT_ALL_MOVIES_QUERY, (err, results) => {
-    if (err) {
-      return res.send(err)
-    } else {
-      scrapeLetterboxdMovie(res, connection, results)
-    }
-  })
+module.exports = {
+  scrapeImdbId,
+  scrapeImdbIdFromPage
 }
-
-module.exports = scrapeImdbId
