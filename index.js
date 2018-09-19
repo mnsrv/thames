@@ -42,6 +42,41 @@ app.get('/movies', asyncHandler(async (req, res, next) => {
   return res.json(movies)
 }))
 
+const getEmojiByWeatherIcon = (icon) => {
+  switch(icon) {
+    case '01d':
+      return '☀️'
+    case '01n':
+      return '🌙'
+    case '02d':
+    case '02n':
+      return '🌤'
+    case '03d':
+    case '03n':
+      return '🌥'
+    case '04d':
+    case '04n':
+      return '☁️'
+    case '09d':
+    case '09n':
+      return '🌧'
+    case '10d':
+    case '10n':
+      return '☔️'
+    case '11d':
+    case '11n':
+      return '⚡️'
+    case '13d':
+    case '13n':
+      return '❄️'
+    case '50d':
+    case '50n':
+      return '🌫'
+    default:
+      return ''
+  }
+}
+
 app.get('/weather', asyncHandler(async (req, res, next) => {
   const city = '524901'
   const appid = config.secret.WEATHER_API_KEY
@@ -50,7 +85,10 @@ app.get('/weather', asyncHandler(async (req, res, next) => {
   }
   const url = `http://api.openweathermap.org/data/2.5/weather?id=${city}&units=metric&APPID=${appid}`
   const response = await axios.get(url)
+  const { icon } = response.data.weather[0]
+
   return res.json({
+    emoji: getEmojiByWeatherIcon(icon),
     temperature: response.data.main.temp
   })
 }))
