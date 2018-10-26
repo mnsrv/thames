@@ -17,6 +17,7 @@ connection.connect(err => {
 })
 
 const SELECT_ALL_MOVIES_QUERY = `SELECT * FROM ${config.database.table}`
+const SELECT_LAST_TWO_MONTHS_MOVIES_QUERY = `SELECT * FROM ${config.database.table} WHERE watched_date BETWEEN DATE_SUB(NOW(), INTERVAL 30 DAY) AND NOW()`
 const SELECT_MOVIE = `SELECT * FROM ${config.database.table} WHERE original_title = ?`
 const UPDATE_MOVIE_QUERY = `UPDATE ${config.database.table} SET ? WHERE id = ?`
 const INSERT_MOVIES_QUERY = `INSERT INTO ${config.database.table} (original_title, year, rating, watched_date, letterboxd_url) VALUES ?`
@@ -25,7 +26,7 @@ const TRUNCATE_LETTERBOXD_QUERY = `TRUNCATE TABLE ${config.database.table}`
 
 const getMoviesFromDB = () => {
   return new Promise((resolve, reject) => {
-    connection.query(SELECT_ALL_MOVIES_QUERY, (err, results) => {
+    connection.query(SELECT_LAST_TWO_MONTHS_MOVIES_QUERY, (err, results) => {
       if (err) {
         reject(err)
       } else {
