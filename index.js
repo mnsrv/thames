@@ -78,7 +78,7 @@ const getEmojiByWeatherIcon = (icon) => {
 }
 
 app.get('/weather', asyncHandler(async (req, res, next) => {
-  const city = '524901'
+  const city = '2013159'
   const appid = config.secret.WEATHER_API_KEY
   if (!appid) {
     throw new Error('No weather api key')
